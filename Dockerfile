@@ -142,6 +142,12 @@ FROM caddy:${CADDY_VERSION} AS symfony_caddy
 
 WORKDIR /srv/app
 
+ARG USER_ID=1000
+ENV USER_ID ${USER_ID}
+
+ARG GROUP_ID=1000
+ENV GROUP_ID ${GROUP_ID}
+
 RUN adduser \
     --disabled-password \
     --gecos "" \
