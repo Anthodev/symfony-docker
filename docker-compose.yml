@@ -2,12 +2,15 @@ version: "3.4"
 
 services:
   php:
+    container_name: symfony-php
     build:
       context: .
       target: app_php
       args:
         SYMFONY_VERSION: ${SYMFONY_VERSION:-}
         STABILITY: ${STABILITY:-stable}
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
     restart: unless-stopped
     volumes:
       - php_socket:/var/run/php

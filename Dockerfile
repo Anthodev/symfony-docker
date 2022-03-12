@@ -29,7 +29,13 @@ RUN apk add --no-cache \
 		file \
 		gettext \
 		git \
+		gnu-libiconv \
+		bash \
 	;
+
+RUN set -xe \
+	&& apk add --no-cache --virtual .php-deps \
+    make
 
 RUN set -eux; \
 	apk add --no-cache --virtual .build-deps \
@@ -82,8 +88,13 @@ HEALTHCHECK --interval=10s --timeout=3s --retries=3 CMD ["docker-healthcheck"]
 COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
+RUN echo 'alias sf="php bin/console"' >> ~/.bashrc
+RUN echo 'alias phpunit="php vendor/bin/simple-phpunit"' >> ~/.bashrc
+RUN echo 'alias stan="php vendor/bin/phpstan"' >> ~/.bashrc
+
 ENTRYPOINT ["docker-entrypoint"]
 CMD ["php-fpm"]
+RUN bash
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
 ENV COMPOSER_ALLOW_SUPERUSER=1

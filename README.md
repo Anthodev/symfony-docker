@@ -1,8 +1,20 @@
-# Symfony Docker
+# Symfony Docker Supercharged
+
+This repo is a fork from the [Symfony Docker](https://www.github.com/dunglas/docker-symfony) repo from [dunglas](https://www.github.com/dunglas/) with added improvements:
+- Added `make` and `bash` into the php container.
+- Added a `Makefile` file to run most of the usual Docker and Symfony commands with more ease
+- Build the docker containers with the user and group id of the user running the command (preventing permission issues)
+- Modified the `ci.yml` file in the `.github` folder to get quicker ci runs (while checking more thing in your project)
+- Trigger the CI on pull requests by default
+- Modified the `docker-compose.yml` file to set a name for the php container (for easier use of the `make` commands)
+
+Below the original `README` of the project.
+
+---
 
 A [Docker](https://www.docker.com/)-based installer and runtime for the [Symfony](https://symfony.com) web framework, with full [HTTP/2](https://symfony.com/doc/current/weblink.html), HTTP/3 and HTTPS support.
 
-![CI](https://github.com/dunglas/symfony-docker/workflows/CI/badge.svg)
+![CI](https://github.com/anthodev/symfony-docker/workflows/CI/badge.svg)
 
 ## Getting Started
 
