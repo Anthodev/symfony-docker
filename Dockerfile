@@ -104,6 +104,18 @@ ENV USER_ID ${USER_ID}
 ARG GROUP_ID=1000
 ENV GROUP_ID ${GROUP_ID}
 
+RUN addgroup --gid $GROUP_ID devuser
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "$(pwd)" \
+    --ingroup "devuser" \
+    --no-create-home \
+    --uid "$USER_ID" \
+    "devuser"
+
+USER devuser
+
 # Download the Symfony skeleton and leverage Docker cache layers
 RUN composer create-project "${SKELETON} ${SYMFONY_VERSION}" . --stability=$STABILITY --prefer-dist --no-dev --no-progress --no-interaction; \
 	composer clear-cache
@@ -141,24 +153,6 @@ RUN xcaddy build \
 FROM caddy:${CADDY_VERSION} AS symfony_caddy
 
 WORKDIR /srv/app
-
-ARG USER_ID=1000
-ENV USER_ID ${USER_ID}
-
-ARG GROUP_ID=1000
-ENV GROUP_ID ${GROUP_ID}
-
-RUN addgroup --gid $GROUP_ID devuser
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "$(pwd)" \
-    --ingroup "devuser" \
-    --no-create-home \
-    --uid "$USER_ID" \
-    "devuser"
-
-USER devuser
 
 COPY --from=dunglas/mercure:v0.11 /srv/public /srv/mercure-assets/
 COPY --from=symfony_caddy_builder /usr/bin/caddy /usr/bin/caddy
