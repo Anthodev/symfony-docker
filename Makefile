@@ -3,13 +3,6 @@ isContainerRunning := $(shell docker ps | grep symfony-php > /dev/null 2>&1 && e
 user := $(shell id -u)
 group := $(shell id -g)
 
-conf_exists:
-ifneq ("$(wildcard .env)","")
-include .env
-else
-	cp .env.dist .env
-endif
-
 ifeq ($(isDocker), 1)
 	ifeq ($(isContainerRunning), 1)
 		DOCKER_COMPOSE := USER_ID=$(user) GROUP_ID=$(group) docker-compose
@@ -34,12 +27,11 @@ COMPOSER = $(DOCKER_EXEC) composer
 CONSOLE = $(DOCKER_COMPOSE) php bin/console
 
 ## —— App ————————————————————————————————————————————————————————————————
-
-build-docker: conf_exists
+build-docker:
 	$(DOCKER_COMPOSE) pull --ignore-pull-failures
-	$(DOCKER_COMPOSE) build --no-cache php
+	$(DOCKER_COMPOSE) build --no-cache
 
-up: conf_exists
+up:
 	@echo "Launching containers from project $(COMPOSE_PROJECT_NAME)..."
 	$(DOCKER_COMPOSE) up -d
 	$(DOCKER_COMPOSE) ps
@@ -48,6 +40,10 @@ stop:
 	@echo "Stopping containers from project $(COMPOSE_PROJECT_NAME)..."
 	$(DOCKER_COMPOSE) stop
 	$(DOCKER_COMPOSE) ps
+
+restore-permissions:
+	@echo "Restoring permissions..."
+	sudo chown -R $(user):$(group) .
 
 ## —— 🐝 The Symfony Makefile 🐝 ———————————————————————————————————
 help: ## Outputs this help screen
