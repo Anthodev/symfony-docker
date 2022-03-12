@@ -142,9 +142,14 @@ FROM caddy:${CADDY_VERSION} AS symfony_caddy
 
 WORKDIR /srv/app
 
-RUN addgroup -g ${GROUP_ID} devuser
-RUN adduser --disabled-password --gecos "" -u ${USER_ID} -G devuser devuser
-ENV HOME /home/devuser
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "$(pwd)" \
+    --ingroup "devuser" \
+    --no-create-home \
+    --uid "$USER_ID" \
+    "devuser"
 
 USER devuser
 
