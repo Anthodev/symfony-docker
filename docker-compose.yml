@@ -3,6 +3,7 @@ version: "3.4"
 services:
   php:
     container_name: symfony-php
+    user: "${USER_ID}:${GROUP_ID}"
     build:
       context: .
       target: symfony_php
