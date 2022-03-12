@@ -123,8 +123,8 @@ RUN set -eux; \
 VOLUME /srv/app/var
 
 RUN echo 'alias sf="php bin/console"' >> ~/.bashrc
-RUN echo 'alias pest="php vendor/bin/pest"' >> ~/.bashrc
-RUN echo 'alias ecs="php vendor/bin/ecs"' >> ~/.bashrc
+RUN echo 'alias phpunit="php vendor/bin/simple-phpunit"' >> ~/.bashrc
+RUN echo 'alias stan="php vendor/bin/phpstan"' >> ~/.bashrc
 
 ENTRYPOINT ["docker-entrypoint"]
 CMD ["php-fpm"]
@@ -142,8 +142,8 @@ FROM caddy:${CADDY_VERSION} AS symfony_caddy
 
 WORKDIR /srv/app
 
-RUN addgroup --gid ${USER_ID} devuser
-RUN adduser --disabled-password --gecos "" -u ${GROUP_ID} -G devuser devuser
+RUN addgroup --gid ${GROUP_ID} devuser
+RUN adduser --disabled-password --gecos "" -u ${USER_ID} -G devuser devuser
 ENV HOME /home/devuser
 
 USER devuser
