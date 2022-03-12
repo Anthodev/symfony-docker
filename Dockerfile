@@ -18,11 +18,16 @@ RUN apk add --no-cache \
 		gettext \
 		git \
 		gnu-libiconv \
+		bash \
 	;
 
 # install gnu-libiconv and set LD_PRELOAD env to make iconv work fully on Alpine image.
 # see https://github.com/docker-library/php/issues/240#issuecomment-763112749
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
+
+RUN set -xe \
+	&& apk add --no-cache --virtual .php-deps \
+    make
 
 ARG APCU_VERSION=5.1.21
 RUN set -eux; \
@@ -111,8 +116,13 @@ RUN set -eux; \
 	chmod +x bin/console; sync
 VOLUME /srv/app/var
 
+RUN echo 'alias sf="php bin/console"' >> ~/.bashrc
+RUN echo 'alias phpunit="php vendor/bin/simple-phpunit"' >> ~/.bashrc
+RUN echo 'alias stan="php vendor/bin/phpstan"' >> ~/.bashrc
+
 ENTRYPOINT ["docker-entrypoint"]
 CMD ["php-fpm"]
+RUN bash
 
 FROM caddy:${CADDY_VERSION}-builder-alpine AS symfony_caddy_builder
 
