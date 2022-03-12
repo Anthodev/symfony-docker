@@ -18,11 +18,16 @@ RUN apk add --no-cache \
 		gettext \
 		git \
 		gnu-libiconv \
+		bash \
 	;
 
 # install gnu-libiconv and set LD_PRELOAD env to make iconv work fully on Alpine image.
 # see https://github.com/docker-library/php/issues/240#issuecomment-763112749
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so
+
+RUN set -xe \
+	&& apk add --no-cache --virtual .php-deps \
+    make
 
 ARG APCU_VERSION=5.1.21
 RUN set -eux; \
@@ -93,6 +98,12 @@ ENV STABILITY ${STABILITY}
 ARG SYMFONY_VERSION=""
 ENV SYMFONY_VERSION ${SYMFONY_VERSION}
 
+ARG USER_ID=1000
+ENV USER_ID ${USER_ID}
+
+ARG GROUP_ID=1000
+ENV GROUP_ID ${GROUP_ID}
+
 # Download the Symfony skeleton and leverage Docker cache layers
 RUN composer create-project "${SKELETON} ${SYMFONY_VERSION}" . --stability=$STABILITY --prefer-dist --no-dev --no-progress --no-interaction; \
 	composer clear-cache
@@ -111,8 +122,13 @@ RUN set -eux; \
 	chmod +x bin/console; sync
 VOLUME /srv/app/var
 
+RUN echo 'alias sf="php bin/console"' >> ~/.bashrc
+RUN echo 'alias pest="php vendor/bin/pest"' >> ~/.bashrc
+RUN echo 'alias ecs="php vendor/bin/ecs"' >> ~/.bashrc
+
 ENTRYPOINT ["docker-entrypoint"]
 CMD ["php-fpm"]
+RUN bash
 
 FROM caddy:${CADDY_VERSION}-builder-alpine AS symfony_caddy_builder
 
@@ -125,6 +141,12 @@ RUN xcaddy build \
 FROM caddy:${CADDY_VERSION} AS symfony_caddy
 
 WORKDIR /srv/app
+
+RUN addgroup --gid ${USER_ID} devuser
+RUN adduser --disabled-password --gecos "" -u ${GROUP_ID} -G devuser devuser
+ENV HOME /home/devuser
+
+USER devuser
 
 COPY --from=dunglas/mercure:v0.11 /srv/public /srv/mercure-assets/
 COPY --from=symfony_caddy_builder /usr/bin/caddy /usr/bin/caddy
