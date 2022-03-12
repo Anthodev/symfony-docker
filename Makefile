@@ -4,7 +4,7 @@ user := $(shell id -u)
 group := $(shell id -g)
 
 conf_exists:
-ifneq ($(wildcard .env),)
+ifneq ("$(wildcard .env)","")
 include .env
 else
 	cp .env.dist .env
