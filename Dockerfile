@@ -148,6 +148,7 @@ ENV USER_ID ${USER_ID}
 ARG GROUP_ID=1000
 ENV GROUP_ID ${GROUP_ID}
 
+RUN addgroup --gid $GROUP_ID devuser
 RUN adduser \
     --disabled-password \
     --gecos "" \
