@@ -10,7 +10,7 @@ ifeq ($(isDocker), 1)
 		dr := $(DOCKER_COMPOSE) run --rm
 		sf := $(DOCKER_EXEC) php bin/console
 		drtest := $(DOCKER_COMPOSE) -f docker-compose.test.yml run --rm
-		php := $(DOCKER_EXEC) --no-deps php
+		php := $(DOCKER_EXEC) php
 	else
 		DOCKER_COMPOSE := USER_ID=$(user) GROUP_ID=$(group) docker-compose
 		DOCKER_EXEC :=
