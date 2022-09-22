@@ -18,6 +18,9 @@ ENV STABILITY ${STABILITY}
 ARG SYMFONY_VERSION=""
 ENV SYMFONY_VERSION ${SYMFONY_VERSION}
 
+ENV UID=${USER_ID:-1000}
+ENV GID=${GROUP_ID:-1000}
+
 ENV APP_ENV=prod
 
 WORKDIR /srv/app
@@ -87,6 +90,21 @@ HEALTHCHECK --interval=10s --timeout=3s --retries=3 CMD ["docker-healthcheck"]
 
 COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
+
+RUN addgroup -S app_group --gid ${GID}
+
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "$(pwd)" \
+    --ingroup app_group \
+    --no-create-home \
+    --uid "$UID" \
+    app_user
+
+RUN rm -rf /srv/app/* && chown app_user:app_group -R /srv/app
+
+USER app_user
 
 RUN echo 'alias sf="php bin/console"' >> ~/.bashrc
 RUN echo 'alias phpunit="php vendor/bin/simple-phpunit"' >> ~/.bashrc
