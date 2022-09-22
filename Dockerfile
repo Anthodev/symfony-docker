@@ -130,7 +130,6 @@ RUN set -eux; \
 
 # copy sources
 COPY . .
-RUN rm -Rf docker/
 
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
