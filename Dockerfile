@@ -51,7 +51,18 @@ CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
 # Dev FrankenPHP image
 FROM frankenphp_base AS frankenphp_dev
 
-ENV APP_ENV=dev XDEBUG_MODE=off
+ENV APP_ENV=dev XDEBUG_MODE=debug UID=${USER_ID:-1000} GID=${GROUP_ID:-1000}
+
+VOLUME /app/var/
+
+RUN apk add --no-cache \
+		bash \
+		curl \
+		shadow \
+	;
+
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.alpine.sh' | bash
+RUN apk add symfony-cli --no-cache
 
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
@@ -61,6 +72,15 @@ RUN set -eux; \
 	;
 
 COPY --link frankenphp/conf.d/app.dev.ini $PHP_INI_DIR/conf.d/
+
+RUN usermod -u ${UID} www-data
+RUN groupmod -g ${GID} www-data
+
+RUN rm -rf /app/* && chown ${UID}:${GID} -R /app
+
+RUN echo 'alias sf="php bin/console"' >> ~/.bashrc
+RUN echo 'alias phpunit="php vendor/bin/simple-phpunit"' >> ~/.bashrc
+RUN echo 'alias stan="php vendor/bin/phpstan"' >> ~/.bashrc
 
 CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
 
