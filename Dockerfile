@@ -74,7 +74,7 @@ COPY --link frankenphp/conf.d/app.dev.ini $PHP_INI_DIR/conf.d/
 RUN usermod -u ${UID} www-data
 RUN groupmod -g ${GID} www-data
 
-RUN rm -rf /srv/app/* && chown ${UID}:${GID} -R /srv/app
+RUN rm -rf /app/* && chown ${UID}:${GID} -R /app
 
 RUN echo 'alias sf="php bin/console"' >> ~/.bashrc
 RUN echo 'alias phpunit="php vendor/bin/simple-phpunit"' >> ~/.bashrc
