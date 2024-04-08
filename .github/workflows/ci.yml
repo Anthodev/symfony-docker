@@ -54,13 +54,27 @@ jobs:
         if: false # Remove this line if Doctrine Migrations is installed
         run: docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
       -
-        name: Run PHPUnit
-        if: false # Remove this line if PHPUnit is installed
-        run: docker compose exec -T php bin/phpunit
+        # Install Symfony CLI
+        name: Symfony CLI
+        run: |
+          curl -sS https://get.symfony.com/cli/installer | bash
+          mv /home/runner/.symfony/bin/symfony /usr/local/bin/symfony
+      -
+        # Check vulnerabilities
+        name: Symfony Check Vulnerabilities
+        run: symfony check:security
+      -
+        name: Static Analysis
+        if: false # Remove this line if PHPStan is installed
+        run: make stan
+      -
+        name: Run Tests
+        if: false # Remove this line if PHPUnit or PestPHP is installed
+        run: make test
       -
         name: Doctrine Schema Validator
         if: false # Remove this line if Doctrine ORM is installed
-        run: docker compose exec -T php bin/console -e test doctrine:schema:validate
+        run: docker compose exec -T php bin/console -e test doctrine:schema:validate --skip-sync -vvv --no-interaction
   lint:
     name: Docker Lint
     runs-on: ubuntu-latest
