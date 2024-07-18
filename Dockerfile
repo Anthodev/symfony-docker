@@ -1,7 +1,7 @@
 #syntax=docker/dockerfile:1.4
 
 # Versions
-FROM dunglas/frankenphp:1-php8.3 AS frankenphp_upstream
+FROM dunglas/frankenphp:1-php8.3-alpine AS frankenphp_upstream
 
 # The different stages of this Dockerfile are meant to be built into separate images
 # https://docs.docker.com/develop/develop-images/multistage-build/#stop-at-a-specific-build-stage
@@ -16,13 +16,13 @@ WORKDIR /app
 VOLUME /app/var/
 
 # persistent / runtime deps
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
-	acl \
-	file \
-	gettext \
-	git \
-	&& rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache \
+		acl \
+		file \
+		gettext \
+		git \
+		bash \
+	;
 
 RUN set -eux; \
 	install-php-extensions \
@@ -51,18 +51,7 @@ CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
 # Dev FrankenPHP image
 FROM frankenphp_base AS frankenphp_dev
 
-ENV APP_ENV=dev XDEBUG_MODE=debug UID=${USER_ID:-1000} GID=${GROUP_ID:-1000}
-
-VOLUME /app/var/
-
-RUN apk add --no-cache \
-		bash \
-		curl \
-		shadow \
-	;
-
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.alpine.sh' | bash
-RUN apk add symfony-cli --no-cache
+ENV APP_ENV=dev XDEBUG_MODE=debug
 
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
@@ -72,11 +61,6 @@ RUN set -eux; \
 	;
 
 COPY --link frankenphp/conf.d/app.dev.ini $PHP_INI_DIR/conf.d/
-
-RUN usermod -u ${UID} www-data
-RUN groupmod -g ${GID} www-data
-
-RUN rm -rf /app/* && chown ${UID}:${GID} -R /app
 
 RUN echo 'alias sf="php bin/console"' >> ~/.bashrc
 RUN echo 'alias phpunit="php vendor/bin/simple-phpunit"' >> ~/.bashrc
