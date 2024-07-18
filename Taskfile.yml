@@ -1,0 +1,188 @@
+version: '3'
+
+silent: true
+
+dotenv:
+    - .env
+    - .env.*.local
+
+vars:
+    DOCKER: docker
+    DOCKER_COMPOSE: docker compose
+    DOCKER_RUN: "{{.DOCKER}} run"
+    DOCKER_EXEC: "{{.DOCKER}} exec"
+    DOCKER_COMPOSE_EXEC: "{{.DOCKER_COMPOSE}} exec"
+    DOCKER_COMPOSE_UP: "{{.DOCKER_COMPOSE}} up -d"
+    DOCKER_COMPOSE_STOP: "{{.DOCKER_COMPOSE}} stop"
+    CONTAINER_SERVICE_PHP_NAME: php
+    CONTAINER_PHP_NAME: symfony-php-php-1
+    IS_CONTAINER_RUNNING: "{{.DOCKER}} ps {{.CONTAINER_SERVICE_PHP_NAME}} | grep {{.CONTAINER_SERVICE_PHP_NAME}}"
+
+tasks:
+    up:
+        aliases:
+            - u
+        desc: "Start the containers"
+        cmds:
+            - "{{.DOCKER_COMPOSE_UP}}"
+    
+    up-db:
+        aliases:
+            - udb
+        desc: "Start the database container"
+        cmds:
+            - "{{.DOCKER_COMPOSE_UP}} astral-core-database-1"
+
+    stop:
+        aliases:
+            - s
+        desc: "Stop the containers"
+        cmds:
+            - "{{.DOCKER_COMPOSE_STOP}}"
+    
+    prune:
+        aliases:
+            - p
+        desc: "Remove all stopped containers"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} down --rmi all --volumes --remove-orphans"
+    
+    build-dev:
+        aliases:
+            - bd
+        desc: "Build the development environment"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} build --no-cache {{.CONTAINER_SERVICE_PHP_NAME}}"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    create-db:
+        aliases:
+            - cdb
+        desc: "Create the database"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec -T {{.CONTAINER_SERVICE_PHP_NAME}} php bin/console doctrine:database:create --if-not-exists"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    create-db-test:
+        aliases:
+            - cdbt
+        desc: "Create the test database"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec -T {{.CONTAINER_SERVICE_PHP_NAME}} php bin/console doctrine:database:create -e test --if-not-exists"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    migrate:
+        aliases:
+            - m
+        desc: "Run the migrations"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec -T {{.CONTAINER_SERVICE_PHP_NAME}} php bin/console doctrine:migrations:migrate --no-interaction"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    migrate-test:
+        aliases:
+            - mt
+        desc: "Run the migrations for the test environment"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec -T {{.CONTAINER_SERVICE_PHP_NAME}} php bin/console doctrine:migrations:migrate -e test --no-interaction"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    drop-db:
+        aliases:
+            - ddb
+        desc: "Drop the database"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec -T {{.CONTAINER_SERVICE_PHP_NAME}} php bin/console doctrine:database:drop --force --if-exists"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    drop-db-test:
+        aliases:
+            - ddbt
+        desc: "Drop the test database"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec -T {{.CONTAINER_SERVICE_PHP_NAME}} php bin/console doctrine:database:drop -e test --force --if-exists"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    laod-fixtures:
+        aliases:
+            - lf
+        desc: "Load the fixtures"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec -T {{.CONTAINER_SERVICE_PHP_NAME}} php bin/console doctrine:fixtures:load --no-interaction"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+
+    tests:
+        aliases:
+            - t
+        desc: "Run the tests"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} run -e APP_ENV=test php php vendor/bin/pest -d memory_limit=-1"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    composer-install:
+        aliases:
+            - c
+        desc: "Install the composer dependencies"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec -T {{.CONTAINER_SERVICE_PHP_NAME}} composer install"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    composer-require:
+        aliases:
+            - cr
+        desc: "Require a composer package"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec -T {{.CONTAINER_SERVICE_PHP_NAME}} composer require {{.ARGS}}"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    stan:
+        aliases:
+            - st
+        desc: "Run the static analysis"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec {{.CONTAINER_SERVICE_PHP_NAME}} php vendor/bin/phpstan analyse"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    ecs:
+        aliases:
+            - e
+        desc: "Run the code style fixer"
+        cmds:
+            - "{{.DOCKER_COMPOSE}} exec {{.CONTAINER_SERVICE_PHP_NAME}} php vendor/bin/ecs check --fix"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
+    
+    bash:
+        aliases:
+            - b
+        desc: "Open a bash session"
+        cmds:
+            - "{{.DOCKER_EXEC}} -it {{.CONTAINER_PHP_NAME}} bash"
+        status:
+            - "{{.IS_CONTAINER_RUNNING}}"
+        silent: false
