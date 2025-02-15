@@ -1,7 +1,9 @@
 #syntax=docker/dockerfile:1
 
+ARG PHP_VERSION=8.3
+
 # Versions
-FROM dunglas/frankenphp:1-php8.3-alpine AS frankenphp_upstream
+FROM dunglas/frankenphp:1-php${PHP_VERSION}-alpine AS frankenphp_upstream
 
 # The different stages of this Dockerfile are meant to be built into separate images
 # https://docs.docker.com/develop/develop-images/multistage-build/#stop-at-a-specific-build-stage
@@ -17,21 +19,25 @@ VOLUME /app/var/
 
 # persistent / runtime deps
 RUN apk add --no-cache \
-		acl \
-		file \
-		gettext \
-		git \
-		bash \
-	;
+    acl \
+    file \
+    gettext \
+    git \
+    bash \
+    supervisor \
+    just \
+;
 
 RUN set -eux; \
-	install-php-extensions \
-		@composer \
-		apcu \
-		intl \
-		opcache \
-		zip \
-	;
+    install-php-extensions \
+        @composer \
+        apcu \
+        intl \
+        opcache \
+        zip \
+        pdo_pgsql \
+        sqlite3 \
+    ;
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
 ENV COMPOSER_ALLOW_SUPERUSER=1
